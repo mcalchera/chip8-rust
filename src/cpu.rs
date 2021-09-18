@@ -114,11 +114,16 @@ impl Cpu {
         self.pc += 2;
         command
     }
+
+    fn clear_screen(&mut self) {
+        println!("Clearing screen...");
+        self.graphics = [[0;64];32];
+    }
 }
 
 // Tests
 #[cfg(test)]
-mod tests {
+mod cpu_tests {
     use super::*;
 
     #[test]
@@ -202,5 +207,16 @@ mod tests {
         let next_op = cpu.get_next_opcode();
         assert_eq!(cpu.pc, 0x202);
         assert!(next_op == 4_686);
+    }
+
+    #[test]
+    fn test_clear_screen() {
+        let mut cpu = Cpu::new();
+        // Set some values in graphics mem
+        cpu.graphics[0][1] = 4;
+        cpu.graphics[2][5] = 5;
+        assert_ne!(cpu.graphics, [[0;64];32]);
+        cpu.clear_screen();
+        assert_eq!(cpu.graphics, [[0;64];32]);
     }
 }
