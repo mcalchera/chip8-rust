@@ -1,4 +1,4 @@
-image: rust:latest
+image: xd009642/tarpaulin:latest
 
 stages:
   - build
@@ -19,4 +19,4 @@ rust-lint:
 rust-test:
   stage: test
   script:
-    - cargo test --verbose
+    - cargo tarpaulin --verbose
