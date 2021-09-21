@@ -81,8 +81,8 @@ impl Cpu {
         self.reset();
         let mut file = File::open(filename)?;
         let filelen = file.metadata().unwrap().len();
-        if filelen > 0xFFF {
-            panic!("ROM file is greater than 4K bytes! Exiting.");
+        if filelen > 0xFFF - 0x200 {
+            panic!("ROM file is greater than 3.5K bytes! Exiting.");
         }
         file.read( &mut self.memory[0x200..0xFFF])?;
         
