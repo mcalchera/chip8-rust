@@ -559,4 +559,20 @@ mod cpu_tests {
         assert_eq!(cpu.v[0xF], 0); //we borrowed, carry flag should not be set
     }
 
+    #[test]
+    fn test_op_8xy6() {
+        let mut cpu = Cpu::new();
+        let op1 = (8,0,2,6);
+        let op2 = (8,1,2,6);
+        cpu.v[0] = 0x80; // right shifting this will not set V[F]
+        cpu.v[1] = 0x01; // right shifting this should set V[F]
+        cpu.current_op = op1;
+        cpu.op_8xy6();
+        assert_eq!(cpu.v[0], 0x40);
+        assert_eq!(cpu.v[0xF], 0);
+        cpu.current_op = op2;
+        assert_eq!(cpu.v[1], 0x0);
+        assert_eq!(cpu.v[0xF], 1);
+    }
+
 }
