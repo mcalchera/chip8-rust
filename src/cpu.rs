@@ -187,9 +187,9 @@ impl Cpu {
     }
 
     fn unimplemented(&self) {
-        let current_op: u16 = self.current_op.0 as u16 >> 12 |
-                              self.current_op.1 as u16 >>  8 |
-                              self.current_op.2 as u16 >>  4 |
+        let current_op: u16 = (self.current_op.0 as u16) << 12 |
+                              (self.current_op.1 as u16) <<  8 |
+                              (self.current_op.2 as u16) <<  4 |
                               self.current_op.3 as u16;
         panic!("Unimplemented Opcode: {:#06x}", current_op);
     }
