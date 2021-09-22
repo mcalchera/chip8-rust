@@ -13,7 +13,7 @@ pub struct Cpu {
     stack: Vec<u16>,
     sound_timer: u8,
     delay_timer: u8,
-    current_op: u16,
+    current_op: (u8,u8,u8,u8),
     key_pressed: [i32; 16],
 }
 
@@ -45,7 +45,7 @@ impl Cpu {
             stack: Vec::<u16>::new(),
             sound_timer: 0,
             delay_timer: 0,
-            current_op: 0,
+            current_op: (0,0,0,0),
             key_pressed: [0; 16],
         }
     }
@@ -58,7 +58,7 @@ impl Cpu {
         self.stack = Vec::<u16>::new();
         self.sound_timer = 0;
         self.delay_timer = 0;
-        self.current_op = 0;
+        self.current_op = (0,0,0,0);
         self.key_pressed = [0; 16];
 
         self.memory[0..80].copy_from_slice(&Cpu::FONT);
@@ -107,18 +107,203 @@ impl Cpu {
         thread_rng().gen::<u8>()
     }
 
-    fn get_next_opcode(&mut self) -> u16 {
+    fn get_next_opcode(&mut self) -> (u8,u8,u8,u8) {
         let pc = self.pc as usize;
         let command: u16 = (u16::from(self.memory[pc]) << 8) 
                           | u16::from(self.memory[pc+1]);
         self.pc += 2;
-        command
+        let op = (
+            (command >> 12) as u8 & 0xF,
+            (command >>  8) as u8 & 0xF,
+            (command >>  4) as u8 & 0xF,
+            command         as u8 & 0xF);
+        op
     }
 
     fn clear_screen(&mut self) {
         println!("Clearing screen...");
         self.graphics = [[0;64];32];
     }
+
+    fn execute_op(&mut self) {
+        self.current_op = self.get_next_opcode();
+        match self.current_op.0 {
+            0x0 => match self.current_op.1 {
+                0x0 => match self.current_op.2 {
+                    0xE0 => self.clear_screen(),
+                    0xEE => self.op_00ee(),
+                    _ => self.unimplemented(),
+                }
+                _ => self.unimplemented(), // We don't support 0x0NNN instructions 
+            }
+            0x1 => self.op_1nnn(),
+            0x2 => self.op_2nnn(),
+            0x3 => self.op_3xnn(),
+            0x4 => self.op_4xnn(),
+            0x5 => self.op_5xyn(),
+            0x6 => self.op_6xnn(),
+            0x7 => self.op_7xnn(),
+            0x8 => match self.current_op.3 {
+                0x0 => self.op_8xy0(),
+                0x1 => self.op_8xy1(),
+                0x2 => self.op_8xy2(),
+                0x3 => self.op_8xy3(),
+                0x4 => self.op_8xy4(),
+                0x5 => self.op_8xy5(),
+                0x6 => self.op_8xy6(),
+                0x7 => self.op_8xy7(),
+                0xE => self.op_8xye(),
+                _ => self.unimplemented(),
+            }
+            0x9 => self.op_9xy0(),
+            0xA => self.op_annn(),
+            0xB => self.op_bnnn(),
+            0xC => self.op_cxnn(),
+            0xD => self.op_dxyn(),
+            0xE => match self.current_op.2 {
+                0x9 => self.op_ex9e(),
+                0xA => self.op_exa1(),
+                _ => self.unimplemented(),
+            }
+            0xF => match u16::from(self.current_op.2) << 4 | u16::from(self.current_op.3) {
+                0x07 => self.op_fx07(),
+                0x0A => self.op_fx0a(),
+                0x15 => self.op_fx15(),
+                0x18 => self.op_fx18(),
+                0x1e => self.op_fx1e(),
+                0x29 => self.op_fx29(),
+                0x33 => self.op_fx33(),
+                0x55 => self.op_fx55(),
+                0x65 => self.op_fx65(),
+                _ => self.unimplemented(),
+            }
+            _ => self.unimplemented(),
+        }
+    }
+
+    fn unimplemented(&self) {
+        let current_op: u16 = self.current_op.0 as u16 >> 12 |
+                              self.current_op.1 as u16 >>  8 |
+                              self.current_op.2 as u16 >>  4 |
+                              self.current_op.3 as u16;
+        panic!("Unimplemented Opcode: {:#06x}", current_op);
+    }
+
+    fn construct_address_from_op(&self) -> u16 {
+        let addr = u16::from(self.current_op.1) << 8 |
+                   u16::from(self.current_op.2) << 4 |
+                   u16::from(self.current_op.3);
+        addr
+    }
+
+    fn op_00ee(&mut self) {
+        match self.stack.pop() {
+            Some(return_val) => self.pc = return_val,
+            None => println!("Error executing 0x00ee: nothing on call stack!"),
+        };
+    }
+
+    fn op_1nnn(&mut self) {
+        let addr = self.construct_address_from_op();
+        self.pc = addr;
+    }
+
+    fn op_2nnn(&mut self) {
+
+    }
+
+    fn op_3xnn(&mut self) {
+
+    }
+
+    fn op_4xnn(&mut self) {
+    }
+
+    fn op_5xyn(&mut self) {
+
+    }
+
+    fn op_6xnn(&mut self) {
+    }
+
+    fn op_7xnn(&mut self) {
+    }
+
+    fn op_8xy0(&mut self) {
+    }
+
+    fn op_8xy1(&mut self) {
+    }
+
+    fn op_8xy2(&mut self) {
+    }
+
+    fn op_8xy3(&mut self) {
+    }
+
+    fn op_8xy4(&mut self) {
+    }
+
+    fn op_8xy5(&mut self) {
+    }
+
+    fn op_8xy6(&mut self) {
+    }
+
+    fn op_8xy7(&mut self) {
+    }
+
+    fn op_8xye(&mut self) {
+    }
+
+    fn op_9xy0(&mut self) {
+    }
+
+    fn op_annn(&mut self) {
+    }
+
+    fn op_bnnn(&mut self) {
+    }
+
+    fn op_cxnn(&mut self) {
+    }
+
+    fn op_dxyn(&mut self) {
+    }
+
+    fn op_ex9e(&mut self) {
+    }
+
+    fn op_exa1(&mut self) {
+    }
+
+    fn op_fx07(&mut self) {
+    }
+
+    fn op_fx0a(&mut self) {
+    }
+
+    fn op_fx15(&mut self) {
+    }
+
+    fn op_fx18(&mut self) {
+    }
+
+    fn op_fx1e(&mut self) {
+    }
+
+    fn op_fx29(&mut self) {
+    }
+
+    fn op_fx33(&mut self) {
+    }
+
+    fn op_fx55(&mut self) {
+    }
+
+    fn op_fx65(&mut self) {
+    }
+
 }
 
 // Tests
@@ -136,7 +321,7 @@ mod cpu_tests {
         assert!(cpu.stack.is_empty());
         assert_eq!(0, cpu.sound_timer);
         assert_eq!(0, cpu.delay_timer);
-        assert_eq!(0, cpu.current_op);
+        assert_eq!((0,0,0,0), cpu.current_op);
         assert_eq!([0;16], cpu.key_pressed);
     }
 
@@ -151,7 +336,7 @@ mod cpu_tests {
         assert!( cpu.stack.is_empty());
         assert_eq!(0, cpu.sound_timer);
         assert_eq!(0, cpu.delay_timer);
-        assert_eq!(0, cpu.current_op);
+        assert_eq!((0,0,0,0), cpu.current_op);
         assert_eq!([0;16], cpu.key_pressed);
     }
     
@@ -206,7 +391,7 @@ mod cpu_tests {
         cpu.memory[0x201] = 0x4e;
         let next_op = cpu.get_next_opcode();
         assert_eq!(cpu.pc, 0x202);
-        assert!(next_op == 4_686);
+        assert_eq!(next_op, (0x1,0x2,0x4,0xe) );
     }
 
     #[test]
@@ -218,5 +403,30 @@ mod cpu_tests {
         assert_ne!(cpu.graphics, [[0;64];32]);
         cpu.clear_screen();
         assert_eq!(cpu.graphics, [[0;64];32]);
+    }
+
+    #[test]
+    fn test_op_00ee() {
+        let mut cpu = Cpu::new();
+        cpu.stack.push(0x206);
+        cpu.op_00ee();
+        assert!(cpu.stack.is_empty());
+        assert_eq!(cpu.pc, 0x206);
+    }
+
+    #[test]
+    fn test_op_1nnn() {
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0x1,0xA,0xB,0xC);
+        cpu.op_1nnn();
+        assert_eq!(cpu.pc, 0x0ABC);
+    }
+    
+    #[test]
+    fn test_construct_address_from_op() {
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0x0, 0x1, 0x2, 0x3);
+        let addr = cpu.construct_address_from_op();
+        assert_eq!(addr, 0x0123);
     }
 }
