@@ -130,51 +130,56 @@ impl Cpu {
         match self.current_op.0 {
             0x0 => match self.current_op.1 {
                 0x0 => match self.current_op.2 {
-                    0xE0 => self.clear_screen(),
-                    0xEE => self.op_00ee(),
+                    0xE0 => self.clear_screen(), // 0x00E0: clear screen
+                    0xEE => self.op_00ee(),  // 0x00EE: return from subroutine
                     _ => self.unimplemented(),
                 }
                 _ => self.unimplemented(), // We don't support 0x0NNN instructions 
             }
-            0x1 => self.op_1nnn(),
-            0x2 => self.op_2nnn(),
-            0x3 => self.op_3xnn(),
-            0x4 => self.op_4xnn(),
-            0x5 => self.op_5xy0(),
-            0x6 => self.op_6xnn(),
-            0x7 => self.op_7xnn(),
+            0x1 => self.op_1nnn(), // 1NNN: Jump to NNN
+            0x2 => self.op_2nnn(), // 2NNN: call subroutine at NNN
+            0x3 => self.op_3xnn(), // 3XNN: skip next instr if V[X] == NN
+            0x4 => self.op_4xnn(), // 4XNN: skip next instr if V[X] != NN
+            0x5 => self.op_5xy0(), // 5XY0: skip next instr if V[X] == V[Y]
+            0x6 => self.op_6xnn(), // 6XNN: set V[X] == NN
+            0x7 => self.op_7xnn(), // 7XNN: set V[X] += NN (carry flag not changed)
             0x8 => match self.current_op.3 {
-                0x0 => self.op_8xy0(),
-                0x1 => self.op_8xy1(),
-                0x2 => self.op_8xy2(),
-                0x3 => self.op_8xy3(),
-                0x4 => self.op_8xy4(),
-                0x5 => self.op_8xy5(),
-                0x6 => self.op_8xy6(),
-                0x7 => self.op_8xy7(),
-                0xE => self.op_8xye(),
+                0x0 => self.op_8xy0(), // 8XY0: V[X] = V[Y]
+                0x1 => self.op_8xy1(), // 8XY1: V[X] = V[X] OR V[Y]
+                0x2 => self.op_8xy2(), // 8XY2: V[X] = V[X] AND V[Y]
+                0x3 => self.op_8xy3(), // 8XY3: V[X] = V[X] XOR V[Y]
+                0x4 => self.op_8xy4(), // 8XY4: V[X] = V[X] + V[Y] (carry flag set to 1 if carry, 0 if not)
+                0x5 => self.op_8xy5(), // 8XY5: V[X] = V[X] - V[Y] (carry flag set to 0 if borrow, 1 if not)
+                0x6 => self.op_8xy6(), // 8XY6: V[F] gets least sig bit of V[X], then VX >>= 1 (right shift)
+                0x7 => self.op_8xy7(), // 8XY7: V[X] = V[Y] - V[X] (carry flag set to 0 if borrow, 1 if not)
+                0xE => self.op_8xye(), // 8XYE: V[F] gets most sig bit of V[X], V[X] <<= 1 (left shift)
                 _ => self.unimplemented(),
             }
-            0x9 => self.op_9xy0(),
-            0xA => self.op_annn(),
-            0xB => self.op_bnnn(),
-            0xC => self.op_cxnn(),
-            0xD => self.op_dxyn(),
+            0x9 => self.op_9xy0(), // 9XY0: Skip next instr if V[X] != V[Y]
+            0xA => self.op_annn(), // ANNN: Set index to NNN
+            0xB => self.op_bnnn(), // BNNN: PC = V[0] + NNN
+            0xC => self.op_cxnn(), // CXNN: V[X] = rand() AND NN 
+            0xD => self.op_dxyn(), // DXYN: Draw sprite at (V[X],V[Y]), 8px wide x N high
+                                   //       V[F] set to 1 if any screen pixels flipped from set to
+                                   //       unset, 0 if not
             0xE => match self.current_op.2 {
-                0x9 => self.op_ex9e(),
-                0xA => self.op_exa1(),
+                0x9 => self.op_ex9e(), // EX9E: skip next instr if key V[X] is pressed
+                0xA => self.op_exa1(), // EXA1: skip next instr if key V[X] is NOT pressed
                 _ => self.unimplemented(),
             }
             0xF => match u16::from(self.current_op.2) << 4 | u16::from(self.current_op.3) {
-                0x07 => self.op_fx07(),
-                0x0A => self.op_fx0a(),
-                0x15 => self.op_fx15(),
-                0x18 => self.op_fx18(),
-                0x1e => self.op_fx1e(),
-                0x29 => self.op_fx29(),
-                0x33 => self.op_fx33(),
-                0x55 => self.op_fx55(),
-                0x65 => self.op_fx65(),
+                0x07 => self.op_fx07(), // FX07: V[X] = value of delay timer
+                0x0A => self.op_fx0a(), // FX0A: V[X] = key press (blocking wait for key press)
+                0x15 => self.op_fx15(), // FX15: Set delay timer to V[X]
+                0x18 => self.op_fx18(), // FX18: Set sound timer to V[X]
+                0x1e => self.op_fx1e(), // FX1E: Index += V[X]. VF set to 1 if I + V[X} > 0xFFF, 0 if not
+                0x29 => self.op_fx29(), // FX29: Index set to location of hex sprite corresponding to val of V[X]
+                0x33 => self.op_fx33(), // FX33: Store binary-coded decimal representation of V[X] into:
+                                        //   Index[0]: hundreds digit
+                                        //   Index[1]: tens digit
+                                        //   Index[2]: ones digit
+                0x55 => self.op_fx55(), // FX55: store V[0] thru V[X] inclusive in memory starting at Index
+                0x65 => self.op_fx65(), // FX65: load V[0] through V[X] inclusive from memory starting at Index
                 _ => self.unimplemented(),
             }
             _ => self.unimplemented(),
@@ -548,10 +553,10 @@ mod cpu_tests {
         cpu.v[1] = 3;
         cpu.op_8xy5();
         assert_eq!(cpu.v[0], 0);
-        assert_eq!(cpu.v[0xF], 0); //no borrow here
+        assert_eq!(cpu.v[0xF], 1); //no borrow here
         cpu.op_8xy5();
         assert_eq!(cpu.v[0], 253);
-        assert_eq!(cpu.v[0xF], 1); //we borrowed, carry flag should be set
+        assert_eq!(cpu.v[0xF], 0); //we borrowed, carry flag should not be set
     }
 
 }
