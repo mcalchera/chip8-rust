@@ -547,6 +547,11 @@ mod cpu_tests {
         cpu.v[0] = 3;
         cpu.v[1] = 3;
         cpu.op_8xy5();
+        assert_eq!(cpu.v[0], 0);
+        assert_eq!(cpu.v[0xF], 0); //no borrow here
+        cpu.op_8xy5();
+        assert_eq!(cpu.v[0], 253);
+        assert_eq!(cpu.v[0xF], 1); //we borrowed, carry flag should be set
     }
 
 }
