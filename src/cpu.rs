@@ -403,12 +403,27 @@ impl Cpu {
     }
 
     fn op_ex9e(&mut self) {
+        let x = self.current_op.1 as usize;
+        let key = self.v[x] as usize;
+
+        if self.key_pressed[key] == 1 {
+            self.pc += 2;
+        }
     }
 
     fn op_exa1(&mut self) {
+        let x = self.current_op.1 as usize;
+        let key = self.v[x] as usize;
+
+        if self.key_pressed[key] != 1 {
+            self.pc += 2;
+        }
     }
 
     fn op_fx07(&mut self) {
+        let x = self.current_op.1 as usize;
+
+        self.v[x] = self.delay_timer;
     }
 
     fn op_fx0a(&mut self) {
@@ -865,10 +880,10 @@ mod cpu_tests {
         cpu.current_op = (0xE,0,0xA,0x1);
         cpu.v[0] = 5;
         cpu.key_pressed[5] = 1;
-        cpu.op_ex9e();
+        cpu.op_exa1();
         assert_eq!(cpu.pc, 0x200);
         cpu.key_pressed[5] = 0;
-        cpu.op_ex9e();
+        cpu.op_exa1();
         assert_eq!(cpu.pc, 0x202);
     }
 
