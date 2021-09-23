@@ -674,4 +674,17 @@ mod cpu_tests {
         assert_eq!(cpu.graphics[1][1], 1);
         assert_eq!(cpu.v[0xF], 1);
     }
+
+    #[test]
+    fn test_op_ex9e() {
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xE,0,0x9,0xE);
+        cpu.v[0] = 5;
+        cpu.key_pressed[5] = 1;
+        cpu.op_ex9e();
+        assert_eq!(cpu.pc, 0x202);
+        cpu.key_pressed[5] = 0;
+        cpu.op_ex9e();
+        assert_eq!(cpu.pc, 0x202);
+    }
 }
