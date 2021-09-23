@@ -701,4 +701,13 @@ mod cpu_tests {
         assert_eq!(cpu.pc, 0x202);
     }
 
+    #[test]
+    fn test_op_fx07() {
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,0,0,7);
+        cpu.v[0] = 0x2;
+        cpu.delay_timer = 0xEF;
+        cpu.op_fx07();
+        assert_eq!(cpu.v[0], 0xEF);
+    }
 }
