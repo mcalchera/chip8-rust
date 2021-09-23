@@ -247,12 +247,16 @@ impl Cpu {
     fn op_6xnn(&mut self) {
         let x = self.current_op.1 as usize;
         let nn = self.current_op.2 << 4 | self.current_op.3;
-        println!("x: {}, nn: {}",x,nn);
 
         self.v[x] = nn;
     }
 
     fn op_7xnn(&mut self) {
+        let x = self.current_op.1 as usize;
+        let nn = self.current_op.2 << 4 | self.current_op.3;
+        
+        let result: u16 = self.v[x] as u16 + nn as u16;
+        self.v[x] = result as u8;
     }
 
     fn op_8xy0(&mut self) {
