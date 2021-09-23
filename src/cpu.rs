@@ -337,6 +337,9 @@ impl Cpu {
     }
 
     fn op_8xye(&mut self) {
+        let x = self.current_op.1 as usize;
+        self.v[0xF] = self.v[x] >> 7;
+        self.v[x] = self.v[x] << 1;
     }
 
     fn op_9xy0(&mut self) {
