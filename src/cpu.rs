@@ -267,6 +267,10 @@ impl Cpu {
     }
 
     fn op_8xy1(&mut self) {
+        let x = self.current_op.1 as usize;
+        let y = self.current_op.2 as usize;
+
+        self.v[x] = self.v[x] | self.v[y];
     }
 
     fn op_8xy2(&mut self) {
