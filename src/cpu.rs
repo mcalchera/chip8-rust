@@ -396,8 +396,8 @@ impl Cpu {
                 let x = (x_coord + bit) % Cpu::GFX_WIDTH;
                 let y = (y_coord + line) % Cpu::GFX_HEIGHT;
                 let set = (self.memory[i + line] >> (7 - bit)) & 0x1;
-                self.v[0xF] |= set & self.graphics[x][y];
-                self.graphics[x][y] ^= set;
+                self.v[0xF] |= set & self.graphics[y][x];
+                self.graphics[y][x] ^= set;
             }
         }
     }
@@ -786,13 +786,14 @@ mod cpu_tests {
     #[test]
     fn test_op_dxyn() {
         let mut cpu = Cpu::new();
-        cpu.index = 0x300;
-        cpu.memory[0x300] = 0xFF;
-        cpu.memory[0x301] = 0x00;
+        cpu.index = 0x300;        // 7 6 5 4 3 2 1 0
+        cpu.memory[0x300] = 0xFF; // * * * * * * * *
+        cpu.memory[0x301] = 0x00; // . . . . . . . .
+
         cpu.graphics[0][0] = 1; // will be unset
-        cpu.graphics[0][1] = 1;  
-        cpu.graphics[1][0] = 0; // will be set
-        cpu.graphics[1][1] = 0;
+        cpu.graphics[0][1] = 0; // will be set
+        cpu.graphics[1][0] = 1; // will be set
+        cpu.graphics[1][1] = 0; // will be unset
          
         cpu.current_op = (0xD,0,0,2); 
         cpu.op_dxyn();
@@ -802,6 +803,48 @@ mod cpu_tests {
         assert_eq!(cpu.graphics[1][1], 0);
         assert_eq!(cpu.v[0xF], 1);
     }
+
+    #[test]
+    fn test_op_dxyn_horizontal_wrapping() {
+        let mut cpu = Cpu::new();
+        cpu.index = 0x300;        //  7 6 5 4 3 2 1 0 
+        cpu.memory[0x300] = 0xFF; //  * * * * * * * * 
+        cpu.v[1] = 62;
+        cpu.graphics[0][62] = 1;
+        cpu.graphics[0][63] = 0;
+
+        cpu.current_op = (0xD,1,0,1);
+        cpu.op_dxyn();
+        assert_eq!(cpu.graphics[0][62], 0);
+        assert_eq!(cpu.graphics[0][63], 1);
+        assert_eq!(cpu.graphics[0][0], 1);
+        assert_eq!(cpu.graphics[0][1], 1);
+        assert_eq!(cpu.graphics[0][2], 1);
+        assert_eq!(cpu.graphics[0][3], 1);
+        assert_eq!(cpu.graphics[0][4], 1);
+        assert_eq!(cpu.graphics[0][5], 1);
+        assert_eq!(cpu.v[0xF], 1);
+    }
+
+    #[test]
+    fn test_op_dxyn_vertical_wrapping() {
+        let mut cpu = Cpu::new();
+        cpu.index = 0x300;        //   7 6 5 4 3 2 1 0
+        cpu.memory[0x300] = 0x80; //   * . . . . . . .
+        cpu.memory[0x301] = 0x80; //   * . . . . . . .   
+        cpu.memory[0x302] = 0x80; //   * . . . . . . .
+        cpu.v[1] = 0;
+        cpu.v[2] = 30;
+
+        cpu.current_op = (0xD,1,2,3);
+        cpu.op_dxyn();
+        assert_eq!(cpu.graphics[30][0], 1);
+        assert_eq!(cpu.graphics[31][0], 1);
+        assert_eq!(cpu.graphics[0][0], 1);
+        assert_eq!(cpu.v[0xF], 0);
+    }
+
+    
 
     #[test]
     fn test_op_ex9e() {
