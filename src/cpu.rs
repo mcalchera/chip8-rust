@@ -215,18 +215,33 @@ impl Cpu {
     }
 
     fn op_2nnn(&mut self) {
-
+        let addr = self.construct_address_from_op();
+        self.stack.push(self.pc);
+        self.pc = addr;
     }
 
     fn op_3xnn(&mut self) {
-
+        let x = self.current_op.1 as usize;
+        let nn = self.current_op.2 | self.current_op.3;
+        if self.v[x] == nn {
+            self.pc += 2;
+        }
     }
 
     fn op_4xnn(&mut self) {
+        let x = self.current_op.1 as usize;
+        let nn = self.current_op.2 | self.current_op.3;
+        if self.v[x] != nn {
+            self.pc += 2;
+        }
     }
 
     fn op_5xy0(&mut self) {
-
+        let x = self.current_op.1 as usize;
+        let y = self.current_op.2 as usize;
+        if self.v[x] == self.v[y] {
+            self.pc += 2;
+        }
     }
 
     fn op_6xnn(&mut self) {
@@ -441,7 +456,8 @@ mod cpu_tests {
         let mut cpu = Cpu::new();
         cpu.current_op = (0x2,0x2,0x2,0x2);
         cpu.op_2nnn();
-        assert_eq!(cpu.stack[0], 0x0222);
+        assert_eq!(cpu.stack[0], 0x200);
+        assert_eq!(cpu.pc, 0x222);
         assert!( cpu.stack.len() == 1 );
 
         cpu.reset();
@@ -458,7 +474,7 @@ mod cpu_tests {
 
         cpu.current_op = op2;
         cpu.op_3xnn(); // v1 == NN, skip
-        assert_eq!(cpu.pc, 0x204);
+        assert_eq!(cpu.pc, 0x202);
         cpu.op_4xnn(); // v1 == NN, don't skip
         assert_eq!(cpu.pc, 0x204);
 
