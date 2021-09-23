@@ -898,4 +898,44 @@ mod cpu_tests {
         cpu.op_fx07();
         assert_eq!(cpu.v[0], 0xEF);
     }
+
+    #[test]
+    fn test_op_fx0a() {
+
+    }
+
+    #[test]
+    fn test_op_fx15() {
+
+    }
+
+    #[test]
+    fn test_op_fx18() {
+
+    }
+
+    #[test]
+    fn test_op_fx1e() {
+
+    }
+
+    #[test]
+    fn test_op_fx29() {
+
+    }
+
+    #[test]
+    fn test_op_fx33() {
+
+    }
+
+    #[test]
+    fn test_op_fx55() {
+
+    }
+
+    #[test]
+    fn test_op_fx65() {
+
+    }
 }
