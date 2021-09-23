@@ -222,7 +222,7 @@ impl Cpu {
 
     fn op_3xnn(&mut self) {
         let x = self.current_op.1 as usize;
-        let nn = self.current_op.2 | self.current_op.3;
+        let nn = self.current_op.2 << 4 | self.current_op.3;
         if self.v[x] == nn {
             self.pc += 2;
         }
@@ -230,7 +230,7 @@ impl Cpu {
 
     fn op_4xnn(&mut self) {
         let x = self.current_op.1 as usize;
-        let nn = self.current_op.2 | self.current_op.3;
+        let nn = self.current_op.2 << 4 | self.current_op.3;
         if self.v[x] != nn {
             self.pc += 2;
         }
@@ -245,6 +245,11 @@ impl Cpu {
     }
 
     fn op_6xnn(&mut self) {
+        let x = self.current_op.1 as usize;
+        let nn = self.current_op.2 << 4 | self.current_op.3;
+        println!("x: {}, nn: {}",x,nn);
+
+        self.v[x] = nn;
     }
 
     fn op_7xnn(&mut self) {
@@ -474,7 +479,7 @@ mod cpu_tests {
 
         cpu.current_op = op2;
         cpu.op_3xnn(); // v1 == NN, skip
-        assert_eq!(cpu.pc, 0x202);
+        assert_eq!(cpu.pc, 0x204);
         cpu.op_4xnn(); // v1 == NN, don't skip
         assert_eq!(cpu.pc, 0x204);
 
