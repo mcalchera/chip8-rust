@@ -343,12 +343,23 @@ impl Cpu {
     }
 
     fn op_9xy0(&mut self) {
+        let x = self.current_op.1 as usize;
+        let y = self.current_op.2 as usize;
+
+        if self.v[x] != self.v[y] {
+            self.pc += 2;
+        }
     }
 
     fn op_annn(&mut self) {
+        let nnn = self.construct_address_from_op();
+
+        self.index = nnn;
     }
 
     fn op_bnnn(&mut self) {
+        let nnn = self.construct_address_from_op();
+        self.pc = nnn + self.v[0] as u16;
     }
 
     fn op_cxnn(&mut self) {
