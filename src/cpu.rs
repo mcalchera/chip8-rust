@@ -636,4 +636,13 @@ mod cpu_tests {
         cpu.op_annn();
         assert_eq!(cpu.index, 0x456);
     }
+
+    #[test]
+    fn test_op_bnnn() {
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xB,3,0,0);
+        cpu.v[0] = 5;
+        cpu.op_bnnn();
+        assert_eq!(cpu.pc, 0x305);
+    }
 }
