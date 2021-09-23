@@ -304,6 +304,16 @@ impl Cpu {
     }
 
     fn op_8xy5(&mut self) {
+        let x = self.current_op.1 as usize;
+        let y = self.current_op.2 as usize;
+
+        if self.v[x] < self.v[y] {
+            self.v[0xF] = 0;
+        } else {
+            self.v[0xF] = 1;
+        }
+
+        self.v[x] = self.v[x].wrapping_sub(self.v[y]);
     }
 
     fn op_8xy6(&mut self) {
