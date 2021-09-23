@@ -363,6 +363,10 @@ impl Cpu {
     }
 
     fn op_cxnn(&mut self) {
+        let x = self.current_op.1 as usize;
+        let nn = self.current_op.2 << 4 | self.current_op.3;
+
+        v[x] = self.rand() & nn;
     }
 
     fn op_dxyn(&mut self) {
