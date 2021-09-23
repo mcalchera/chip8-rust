@@ -16,7 +16,8 @@ pub struct Cpu {
     current_op: (u8,u8,u8,u8),
     key_pressed: [i32; 16],
 }
-
+// TODO: Remove this directive after writing main fn!
+#[allow(dead_code)]
 impl Cpu {
     pub const FONT: [u8; 80] = [0xF0, 0x90, 0x90, 0x90, 0xF0,
                                 0x20, 0x60, 0x20, 0x20, 0x70,
@@ -573,6 +574,22 @@ mod cpu_tests {
         cpu.current_op = op2;
         assert_eq!(cpu.v[1], 0x0);
         assert_eq!(cpu.v[0xF], 1);
+    }
+
+    #[test]
+    fn test_op_8xy7() {
+        // This test is the same as 8xy5, just subtracting y from x instead
+        // As such, i am using the same test as 8xy5 with the registers reversed
+        let mut cpu = Cpu::new();
+        cpu.current_op = (8,1,0,7);
+        cpu.v[0] = 3;
+        cpu.v[1] = 3;
+        cpu.op_8xy7();
+        assert_eq!(cpu.v[1], 0);
+        assert_eq!(cpu.v[0xF], 1); //no borrow here
+        cpu.op_8xy7();
+        assert_eq!(cpu.v[1], 253);
+        assert_eq!(cpu.v[0xF], 0); //we borrowed, carry flag should not be set
     }
 
 }
