@@ -572,6 +572,7 @@ mod cpu_tests {
         assert_eq!(cpu.v[0], 0x40);
         assert_eq!(cpu.v[0xF], 0);
         cpu.current_op = op2;
+        cpu.op_8xy6();
         assert_eq!(cpu.v[1], 0x0);
         assert_eq!(cpu.v[0xF], 1);
     }
@@ -591,5 +592,22 @@ mod cpu_tests {
         assert_eq!(cpu.v[1], 253);
         assert_eq!(cpu.v[0xF], 0); //we borrowed, carry flag should not be set
     }
-
+    
+    #[test]
+    fn test_op_8xye() {
+        // ditto for this test.  Very similar to 8xy6 but with left shifts
+        let mut cpu = Cpu::new();
+        let op1 = (8,0,2,0xE);
+        let op2 = (8,1,2,0xE);
+        cpu.v[0] = 0x80; // 0x80 << 1 = 0x00, V[F] = 1
+        cpu.v[1] = 0x01; // 0x01 << 1 = 0x02, V[F] = 0
+        cpu.current_op = op1;
+        cpu.op_8xye();
+        assert_eq!(cpu.v[0], 0x00);
+        assert_eq!(cpu.v[0xF], 1);
+        cpu.current_op = op2;
+        cpu.op_8xye();
+        assert_eq!(cpu.v[1], 0x02);
+        assert_eq!(cpu.v[0xF], 0);
+    }
 }
