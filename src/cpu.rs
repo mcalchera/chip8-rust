@@ -655,4 +655,23 @@ mod cpu_tests {
         assert!(cpu.v[1] <= 0x20); // kinda hard to test random results...
     }
 
+    #[test]
+    fn test_op_dxyn() {
+        let mut cpu = Cpu::new();
+        cpu.index = 0x300;
+        let i = cpu.index as usize;
+        cpu.memory[i]   = 0b1111_1111;
+        cpu.memory[i+1] = 0b0000_0000;
+        cpu.graphics[0][0] = 0;
+        cpu.graphics[0][1] = 1; // will be flipped
+        cpu.graphics[1][0] = 0; 
+        cpu.graphics[1][1] = 1; // will be flipped
+        
+        cpu.current_op = (0xD,0,0,2); 
+        assert_eq!(cpu.graphics[0][0], 1);
+        assert_eq!(cpu.graphics[0][1], 0);
+        assert_eq!(cpu.graphics[1][0], 0);
+        assert_eq!(cpu.graphics[1][1], 1);
+        assert_eq!(cpu.v[0xF], 1);
+    }
 }
