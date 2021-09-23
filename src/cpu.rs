@@ -323,6 +323,17 @@ impl Cpu {
     }
 
     fn op_8xy7(&mut self) {
+        let x = self.current_op.1 as usize;
+        let y = self.current_op.2 as usize;
+
+        if self.v[x] <= self.v[y] {
+            self.v[0xF] = 1;
+        }
+        else {
+            self.v[0xF] = 0;
+        }
+
+        self.v[x] = self.v[y].wrapping_sub(self.v[x]);
     }
 
     fn op_8xye(&mut self) {
@@ -655,6 +666,8 @@ mod cpu_tests {
         cpu.op_8xy7();
         assert_eq!(cpu.v[1], 0);
         assert_eq!(cpu.v[0xF], 1); //no borrow here
+        cpu.v[0] = 0;
+        cpu.v[1] = 3;
         cpu.op_8xy7();
         assert_eq!(cpu.v[1], 253);
         assert_eq!(cpu.v[0xF], 0); //we borrowed, carry flag should not be set
