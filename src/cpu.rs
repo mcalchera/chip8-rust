@@ -35,6 +35,10 @@ impl Cpu {
                                 0xE0, 0x90, 0x90, 0x90, 0xE0,
                                 0xF0, 0x80, 0xF0, 0x80, 0xF0,
                                 0xF0, 0x80, 0xF0, 0x80, 0x80 ];
+    
+    pub const GFX_HEIGHT: usize = 32;
+    pub const GFX_WIDTH: usize  = 64;
+
     // Public functions
     pub fn new() -> Cpu {
         Cpu {
@@ -366,10 +370,36 @@ impl Cpu {
         let x = self.current_op.1 as usize;
         let nn = self.current_op.2 << 4 | self.current_op.3;
 
-        v[x] = self.rand() & nn;
+        self.v[x] = Cpu::rand() & nn;
     }
 
     fn op_dxyn(&mut self) {
+        let x = self.current_op.1 as usize;
+        let y = self.current_op.2 as usize;
+        let n = self.current_op.3 as usize;
+        let i = self.index as usize;
+        let x_coord = self.v[x] as usize;
+        let y_coord = self.v[y] as usize;
+
+        // Draw a sprite starting at (V[X], V[Y]) from memory[I] that is 8px
+        // wide by N pixels tall. XOR each bit of graphics memory, if any are flipped
+        // from set to unset, V[F] = 1.  otherwise it should be 0
+        // Also needs to wrap around if the sprite would go out of bounds
+        
+        self.v[0xF] = 0;
+
+        // line loop
+        for line in 0..n { 
+            // byte loop
+            for bit in 0..8 {
+                // determine if this bit is set by ANDing with a mask bit
+                let x = (x_coord + bit) % Cpu::GFX_WIDTH;
+                let y = (y_coord + line) % Cpu::GFX_HEIGHT;
+                let set = (self.memory[i + line] >> (7 - bit)) & 0x1;
+                self.v[0xF] |= set & self.graphics[x][y];
+                self.graphics[x][y] ^= set;
+            }
+        }
     }
 
     fn op_ex9e(&mut self) {
@@ -750,26 +780,26 @@ mod cpu_tests {
         cpu.current_op = (0xC,1,2,4);
         cpu.v[1] = 0x20;
         cpu.op_cxnn();
-        assert!(cpu.v[1] <= 0x20); // kinda hard to test random results...
+        // kinda hard to test random results...
     }
 
     #[test]
     fn test_op_dxyn() {
         let mut cpu = Cpu::new();
         cpu.index = 0x300;
-        let i = cpu.index as usize;
-        cpu.memory[i]   = 0b1111_1111;
-        cpu.memory[i+1] = 0b0000_0000;
-        cpu.graphics[0][0] = 0;
-        cpu.graphics[0][1] = 1; // will be flipped
-        cpu.graphics[1][0] = 0; 
-        cpu.graphics[1][1] = 1; // will be flipped
-        
+        cpu.memory[0x300] = 0xFF;
+        cpu.memory[0x301] = 0x00;
+        cpu.graphics[0][0] = 1; // will be unset
+        cpu.graphics[0][1] = 1;  
+        cpu.graphics[1][0] = 0; // will be set
+        cpu.graphics[1][1] = 0;
+         
         cpu.current_op = (0xD,0,0,2); 
-        assert_eq!(cpu.graphics[0][0], 1);
-        assert_eq!(cpu.graphics[0][1], 0);
-        assert_eq!(cpu.graphics[1][0], 0);
-        assert_eq!(cpu.graphics[1][1], 1);
+        cpu.op_dxyn();
+        assert_eq!(cpu.graphics[0][0], 0);
+        assert_eq!(cpu.graphics[0][1], 1);
+        assert_eq!(cpu.graphics[1][0], 1);
+        assert_eq!(cpu.graphics[1][1], 0);
         assert_eq!(cpu.v[0xF], 1);
     }
 
