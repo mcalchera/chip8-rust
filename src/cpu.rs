@@ -558,6 +558,8 @@ mod cpu_tests {
         cpu.op_00ee();
         assert!(cpu.stack.is_empty());
         assert_eq!(cpu.pc, 0x206);
+        cpu.op_00ee(); //should emit some text but still work, pc should be same
+        assert_eq!(cpu.pc, 0x206);
     }
 
     #[test]
