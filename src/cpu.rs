@@ -645,4 +645,14 @@ mod cpu_tests {
         cpu.op_bnnn();
         assert_eq!(cpu.pc, 0x305);
     }
+
+    #[test]
+    fn test_op_cxnn() {
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xC,1,2,4);
+        cpu.v[1] = 0x20;
+        cpu.op_cxnn();
+        assert!(cpu.v[1] <= 0x20); // kinda hard to test random results...
+    }
+
 }
