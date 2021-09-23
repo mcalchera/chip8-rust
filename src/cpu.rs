@@ -289,6 +289,18 @@ impl Cpu {
 
 
     fn op_8xy4(&mut self) {
+        let x = self.current_op.1 as usize;
+        let y = self.current_op.2 as usize;
+
+        let result: u16 = self.v[x] as u16 + self.v[y] as u16;
+        if result > 0xFF {
+            self.v[0xF] = 1;
+        }
+        else {
+            self.v[0xF] = 0;
+        }
+
+        self.v[x] = result as u8;
     }
 
     fn op_8xy5(&mut self) {
@@ -585,7 +597,7 @@ mod cpu_tests {
         assert_eq!(cpu.v[0xF], 0);
         cpu.op_8xy4();
         assert_eq!(cpu.v[0], 0); //should have carried here
-        assert_eq!(cpu.v[0], 1); //...and set the carry flag
+        assert_eq!(cpu.v[0xF], 1); //...and set the carry flag
     }
 
     #[test]
