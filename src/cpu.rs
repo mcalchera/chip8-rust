@@ -618,7 +618,7 @@ mod cpu_tests {
         let op2 = (9,1,0xE,0x0);
         cpu.v[0] = 0x55;
         cpu.v[0xE] = 0x55;
-        cpu.pc = 0x400 // changing program counter from default
+        cpu.pc = 0x400; // changing program counter from default
         
         cpu.current_op = op1;
         cpu.op_9xy0();
@@ -627,5 +627,13 @@ mod cpu_tests {
         cpu.v[0] = 0x54;
         cpu.op_9xy0();
         assert_eq!(cpu.pc, 0x402);
+    }
+
+    #[test]
+    fn test_op_annn() {
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xA,4,5,6);
+        cpu.op_annn();
+        assert_eq!(cpu.index, 0x456);
     }
 }
