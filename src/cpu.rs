@@ -102,6 +102,10 @@ impl Cpu {
         self.key_pressed[key] = 0;
     }
 
+    pub fn advance_state(&mut self) {
+        self.execute_next_op();
+    }
+
     // Private functions
     fn play_sound(&mut self) {
         println!("BEEP!");
@@ -130,7 +134,7 @@ impl Cpu {
         self.graphics = [[0;64];32];
     }
 
-    fn execute_op(&mut self) {
+    fn execute_next_op(&mut self) {
         self.current_op = self.get_next_opcode();
         match self.current_op.0 {
             0x0 => match self.current_op.1 {
@@ -872,7 +876,7 @@ mod cpu_tests {
         cpu.index = 0x300;        //  7 6 5 4 3 2 1 0 
         cpu.memory[0x300] = 0xFF; //  * * * * * * * * 
         cpu.v[1] = 62;
-        cpu.graphics[0][62] = 1;
+        cpu.graphics[0][62] = 1; //this bit is unset, set v[f] = 1
         cpu.graphics[0][63] = 0;
 
         cpu.current_op = (0xD,1,0,1);
