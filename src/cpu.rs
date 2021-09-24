@@ -464,9 +464,16 @@ impl Cpu {
     }
 
     fn op_fx29(&mut self) {
+        let x = self.current_op.1 as usize;
+        self.index = self.v[x] as u16 * 5;
     }
 
     fn op_fx33(&mut self) {
+        let x = self.current_op.1 as usize;
+        let i = self.index as usize;
+        self.memory[i] = self.v[x] / 100;
+        self.memory[i+1] = (self.v[x] / 10) % 10;
+        self.memory[i+2] = self.v[x] % 10;
     }
 
     fn op_fx55(&mut self) {
