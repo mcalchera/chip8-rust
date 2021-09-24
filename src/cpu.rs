@@ -901,32 +901,65 @@ mod cpu_tests {
 
     #[test]
     fn test_op_fx0a() {
+        let mut cpu = Cpu::new();
 
+        assert!(false); // TODO
     }
 
     #[test]
     fn test_op_fx15() {
-
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,0,1,5);
+        cpu.v[0] = 0x1F;
+        cpu.op_fx15();
+        assert_eq!(cpu.delay_timer, 0x1F);
     }
 
     #[test]
     fn test_op_fx18() {
-
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,0xB,1,8);
+        cpu.v[0xB] = 0xAC;
+        cpu.op_fx18();
+        assert_eq!(cpu.sound_timer, 0xAC);
     }
 
     #[test]
     fn test_op_fx1e() {
-
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,0,1,0xE);
+        cpu.v[0] = 0x04;
+        cpu.index = 0xFFD;
+        cpu.op_fx18();
+        assert_eq!(cpu.index, 0x1001);
+        assert_eq!(cpu.v[0xF], 1);
+        cpu.op_fx18();
+        assert_eq!(cpu.index, 0x1005);
+        assert_eq!(cpu.v[0xF], 0);
     }
 
     #[test]
     fn test_op_fx29() {
-
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,0,2,9);
+        cpu.v[0] = 1;
+        cpu.op_fx29();
+        assert_eq!(cpu.index, 0x005);
+        cpu.v[0] = 0xF;
+        cpu.op_fx29();
+        assert_eq!(cpu.index, 0x04B);
     }
 
     #[test]
     fn test_op_fx33() {
-
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,0xC,3,3);
+        cpu.v[0xC] = 215;
+        cpu.index = 0x400;
+        cpu.op_fx33();
+        assert_eq!(cpu.memory[0x400], 2);
+        assert_eq!(cpu.memory[0x401], 1);
+        assert_eq!(cpu.memory[0x402], 5);
     }
 
     #[test]
