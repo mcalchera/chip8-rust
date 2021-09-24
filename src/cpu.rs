@@ -902,6 +902,7 @@ mod cpu_tests {
     #[test]
     fn test_op_fx0a() {
         let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,1,0,0xA);
 
         assert!(false); // TODO
     }
@@ -964,11 +965,31 @@ mod cpu_tests {
 
     #[test]
     fn test_op_fx55() {
-
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,2,5,5);
+        cpu.v[0] = 1;
+        cpu.v[1] = 4;
+        cpu.v[2] = 8;
+        cpu.index = 0x888;
+        cpu.op_fx55();
+        assert_eq!(cpu.memory[0x888], 1);
+        assert_eq!(cpu.memory[0x889], 4);
+        assert_eq!(cpu.memory[0x88A], 8);
     }
 
     #[test]
     fn test_op_fx65() {
-
+        let mut cpu = Cpu::new();
+        cpu.current_op = (0xF,3,6,5);
+        cpu.index = 0x800;
+        cpu.memory[0x800] = 1;
+        cpu.memory[0x801] = 5;
+        cpu.memory[0x802] = 9;
+        cpu.memory[0x803] = 17;
+        cpu.op_fx65();
+        assert_eq!(cpu.v[0], 1);
+        assert_eq!(cpu.v[1], 5);
+        assert_eq!(cpu.v[2], 9);
+        assert_eq!(cpu.v[3], 17);
     }
 }
