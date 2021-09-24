@@ -427,15 +427,40 @@ impl Cpu {
     }
 
     fn op_fx0a(&mut self) {
+        let x = self.current_op.1 as usize;
+        let pressed = true;
+
+        for key in 0..15 {
+            if self.key_pressed[key] != 0 {
+                self.v[x] = key as u8;
+                break;
+            }
+        }
+        if ! pressed {
+            self.pc -= 2;
+        }
     }
 
     fn op_fx15(&mut self) {
+        let x = self.current_op.1 as usize;
+        self.delay_timer = self.v[x];
     }
 
     fn op_fx18(&mut self) {
+        let x = self.current_op.1 as usize;
+        self.sound_timer = self.v[x];
     }
 
     fn op_fx1e(&mut self) {
+        let x = self.current_op.1 as usize;
+        self.index += self.v[x] as u16;
+        
+        if self.index > 0xFFF {
+            self.v[0xF] = 1;
+        }
+        else {
+            self.v[0xF] = 0;
+        }    
     }
 
     fn op_fx29(&mut self) {
@@ -931,11 +956,12 @@ mod cpu_tests {
         cpu.current_op = (0xF,0,1,0xE);
         cpu.v[0] = 0x04;
         cpu.index = 0xFFD;
-        cpu.op_fx18();
+        cpu.op_fx1e();
         assert_eq!(cpu.index, 0x1001);
         assert_eq!(cpu.v[0xF], 1);
-        cpu.op_fx18();
-        assert_eq!(cpu.index, 0x1005);
+        cpu.index = 0xFF2;
+        cpu.op_fx1e();
+        assert_eq!(cpu.index, 0xFF6);
         assert_eq!(cpu.v[0xF], 0);
     }
 
