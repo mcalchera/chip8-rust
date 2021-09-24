@@ -477,9 +477,21 @@ impl Cpu {
     }
 
     fn op_fx55(&mut self) {
+        let x = self.current_op.1 as usize;
+        let i = self.index as usize;
+
+        for reg in 0..=x {
+            self.memory[i + reg] = self.v[reg];
+        }
     }
 
     fn op_fx65(&mut self) {
+        let x = self.current_op.1 as usize;
+        let i = self.index as usize;
+
+        for reg in 0..=x {
+            self.v[reg] = self.memory[i + reg];
+        }
     }
 
 }
