@@ -966,12 +966,14 @@ mod cpu_tests {
         // button should not be pressed here
         cpu.lock().unwrap().op_fx0a();
         assert_eq!(cpu.lock().unwrap().v[1], 0);
+        assert_eq!(cpu.lock().unwrap().pc, 0x1FE);
         thread::sleep(Duration::from_millis(500));
 
         // 500 ms has passed, button should now be pressed
         cpu.lock().unwrap().op_fx0a();
         t.join().unwrap();
         assert_eq!(cpu.lock().unwrap().v[1], 5);
+        assert_eq!(cpu.lock().unwrap().pc, 0x1FE);
     }
 
     #[test]
