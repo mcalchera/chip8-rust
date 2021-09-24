@@ -428,11 +428,12 @@ impl Cpu {
 
     fn op_fx0a(&mut self) {
         let x = self.current_op.1 as usize;
-        let pressed = true;
+        let mut pressed = false;
 
         for key in 0..15 {
             if self.key_pressed[key] != 0 {
                 self.v[x] = key as u8;
+                pressed = true;
                 break;
             }
         }
@@ -945,10 +946,32 @@ mod cpu_tests {
 
     #[test]
     fn test_op_fx0a() {
-        let mut cpu = Cpu::new();
-        cpu.current_op = (0xF,1,0,0xA);
+        use std::thread;
+        use std::time::Duration;
+        use std::sync::Arc;
+        use std::sync::Mutex;
 
-        assert!(false); // TODO
+        let cpu = Arc::new(Mutex::new(Cpu::new()));
+        cpu.lock().unwrap().current_op = (0xF,1,0,0xA);
+        
+        // clone reference to cpu to pass to thread
+        let cpu_ref = cpu.clone();
+        let t = thread::spawn(move || {
+            // "press" button after sleeping for 400ms
+            thread::sleep(Duration::from_millis(400));
+            let mut cpu = cpu_ref.lock().unwrap();
+            cpu.key_pressed[5] = 1;
+        });
+
+        // button should not be pressed here
+        cpu.lock().unwrap().op_fx0a();
+        assert_eq!(cpu.lock().unwrap().v[1], 0);
+        thread::sleep(Duration::from_millis(500));
+
+        // 500 ms has passed, button should now be pressed
+        cpu.lock().unwrap().op_fx0a();
+        t.join().unwrap();
+        assert_eq!(cpu.lock().unwrap().v[1], 5);
     }
 
     #[test]
