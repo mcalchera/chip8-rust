@@ -1,7 +1,12 @@
+extern crate sdl2;
 use std::fs::File;
 use std::io::prelude::*;
 use rand::thread_rng;
 use rand::Rng;
+use crate::Config;
+use sdl2::video::Window;
+use sdl2::render::Canvas;
+use sdl2::rect::Rect;
 
 #[derive(Debug)]
 pub struct Cpu {
@@ -107,6 +112,23 @@ impl Cpu {
 
     pub fn advance_state(&mut self) {
         self.execute_next_op();
+    }
+
+    /// Updates the SDL canvas with the contents of the processors, graphics memory
+    pub fn update_graphics(&self, cfg: Config, canvas: &mut Canvas<Window>) {
+       for x in 0..Cpu::GFX_WIDTH {
+           for y in 0..Cpu::GFX_HEIGHT {
+               match self.graphics[y][x] {
+                   0 => { canvas.set_draw_color(cfg.white); },
+                   _ => { canvas.set_draw_color(cfg.white); }
+               }
+               match canvas.fill_rect(Rect::new(x as i32, y as i32, cfg.scale, cfg.scale)) {
+                    Ok(()) => {},
+                    Err(err) => { println!("Error drawing rect: {}",err); },
+               }
+           }
+       }
+       canvas.present();
     }
 
     // Private functions
