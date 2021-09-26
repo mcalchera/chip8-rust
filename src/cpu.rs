@@ -1066,4 +1066,13 @@ mod cpu_tests {
         assert_eq!(cpu.v[2], 9);
         assert_eq!(cpu.v[3], 17);
     }
+
+    #[test]
+    #[should_panic]
+    fn test_unimplemented() {
+        let mut cpu = Cpu::new();
+        cpu.memory[0x200] = 0x01; // 0x0NNN Jump to SYS memory not supported
+        cpu.memory[0x201] = 0x23;
+        cpu.advance_state();
+    }
 }
