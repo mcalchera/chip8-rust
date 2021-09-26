@@ -52,8 +52,7 @@ fn main() {
         .unwrap();
 
     let mut canvas = window.into_canvas().build().unwrap();
-    canvas.set_draw_color(config.white);
-    canvas.clear();
-    canvas.present();
+    cpu.update_graphics(config, &mut canvas);
     sleep(Duration::from_millis(2000));
+    // Game loop
 }

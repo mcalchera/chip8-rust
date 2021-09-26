@@ -114,14 +114,18 @@ impl Cpu {
         self.execute_next_op();
     }
 
-    /// Updates the SDL canvas with the contents of the processors, graphics memory
+    /// Updates the SDL canvas with the contents of the processor's graphics memory
+    /// Assumes an initialized Config option and an initialized SDL context with
+    /// a canvas
     pub fn update_graphics(&self, cfg: Config, canvas: &mut Canvas<Window>) {
        for x in 0..Cpu::GFX_WIDTH {
            for y in 0..Cpu::GFX_HEIGHT {
                match self.graphics[y][x] {
                    0 => { canvas.set_draw_color(cfg.white); },
-                   _ => { canvas.set_draw_color(cfg.white); }
+                   _ => { canvas.set_draw_color(cfg.black); }
                }
+               let x = x as u32 * cfg.scale;
+               let y = y as u32 * cfg.scale;
                match canvas.fill_rect(Rect::new(x as i32, y as i32, cfg.scale, cfg.scale)) {
                     Ok(()) => {},
                     Err(err) => { println!("Error drawing rect: {}",err); },
