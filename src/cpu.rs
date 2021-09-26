@@ -41,8 +41,11 @@ impl Cpu {
 
     // Public functions
     pub fn new() -> Cpu {
+        let mut mem = [0u8; 0xFFF];
+        mem[0..80].copy_from_slice(&Cpu::FONT);
+
         Cpu {
-            memory: [0; 0xFFF],
+            memory: mem,
             graphics: [[0;64];32],
             v: [0; 16],
             index: 0,
@@ -509,7 +512,7 @@ mod cpu_tests {
     #[test]
     fn test_new_cpu() {
         let cpu = Cpu::new();
-        assert_eq!([0;80], cpu.memory[0..=79]);
+        assert_eq!(Cpu::FONT, cpu.memory[0..=79]);
         assert_eq!([[0;64];32], cpu.graphics);
         assert_eq!([0;16],cpu.v);
         assert_eq!(0x200, cpu.pc);
