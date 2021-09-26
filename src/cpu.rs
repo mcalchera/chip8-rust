@@ -115,7 +115,7 @@ impl Cpu {
     }
 
     /// Updates the SDL canvas with the contents of the processor's graphics memory
-    /// Assumes an initialized Config option and an initialized SDL context with
+    /// Assumes an initialized Config object and an initialized SDL context with
     /// a canvas
     pub fn update_graphics(&self, cfg: Config, canvas: &mut Canvas<Window>) {
        for x in 0..Cpu::GFX_WIDTH {
