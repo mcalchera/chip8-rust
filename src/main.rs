@@ -54,8 +54,6 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
 
     let mut canvas = window.into_canvas().build().unwrap();
-    cpu.update_graphics(config, &mut canvas);
-    sleep(Duration::from_millis(2000));
     // Game loop
     'gameloop: loop {
         for event in event_pump.poll_iter() {
@@ -72,6 +70,8 @@ fn main() {
                 _ => {},
             }
         }
+        sleep(Duration::from_millis(1000));
+        cpu.update_graphics(config, &mut canvas);
     }
 
 }
