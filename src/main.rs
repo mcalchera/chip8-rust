@@ -71,6 +71,7 @@ fn main() {
             }
         }
         sleep(Duration::from_millis(16));
+        cpu.decrement_timers();
         cpu.update_graphics(&config, &mut canvas);
     }
 
