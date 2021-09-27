@@ -3,7 +3,6 @@ use crate::cpu::Cpu;
 use std::env;
 extern crate sdl2;
 use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use std::thread::sleep;
 use std::time::Duration;
@@ -31,6 +30,7 @@ fn process_args(args: &[String]) -> Config {
     }
 }
 
+
 #[cfg(not(tarpaulin_include))]
 fn main() {
     let mut cpu = Cpu::new();
@@ -51,8 +51,27 @@ fn main() {
         .build()
         .unwrap();
 
+    let mut event_pump = sdl_context.event_pump().unwrap();
+
     let mut canvas = window.into_canvas().build().unwrap();
     cpu.update_graphics(config, &mut canvas);
     sleep(Duration::from_millis(2000));
     // Game loop
+    'gameloop: loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit {..} => {
+                    break 'gameloop;
+                },
+                Event::KeyDown {..} => {
+                    cpu.process_input(event);
+                }
+                Event::KeyUp {..} => {
+                    cpu.process_input(event);
+                },
+                _ => {},
+            }
+        }
+    }
+
 }

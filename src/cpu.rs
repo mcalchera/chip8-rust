@@ -7,6 +7,8 @@ use crate::Config;
 use sdl2::video::Window;
 use sdl2::render::Canvas;
 use sdl2::rect::Rect;
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
 
 #[derive(Debug)]
 pub struct Cpu {
@@ -133,6 +135,48 @@ impl Cpu {
            }
        }
        canvas.present();
+    }
+
+    fn keycode_to_index(keycode: Keycode) -> usize {
+        match keycode {
+            Keycode::X    => { 0 },
+            Keycode::Num1 => { 1 },
+            Keycode::Num2 => { 2 },
+            Keycode::Num3 => { 3 },
+            Keycode::Q    => { 4 },
+            Keycode::W    => { 5 },
+            Keycode::E    => { 6 },
+            Keycode::A    => { 7 },
+            Keycode::S    => { 8 },
+            Keycode::D    => { 9 },
+            Keycode::Z    => { 10 },
+            Keycode::C    => { 11 },
+            Keycode::Num4 => { 12 },
+            Keycode::R    => { 13 },
+            Keycode::F    => { 14 },
+            Keycode::V    => { 15 },
+            _             => { 16 },
+        }
+    }
+
+    pub fn process_input(&mut self, e: Event) {
+        match e {
+            Event::KeyDown {keycode, ..} => {
+                let index = match keycode {
+                    Some(keycode) => Cpu::keycode_to_index(keycode),
+                    None => 16
+                };
+                if index < 16 { self.press_button(index); }
+            }
+            Event::KeyUp {keycode, ..} => {
+                let index = match keycode {
+                    Some(keycode) => Cpu::keycode_to_index(keycode),
+                    None => 16,
+                };
+                if index < 16 { self.release_button(index); }
+            }
+            _ => {}
+        }
     }
 
     // Private functions
