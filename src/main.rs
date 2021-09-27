@@ -57,6 +57,7 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
     // Game loop
     'gameloop: loop {
+        cpu.advance_state();
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} => {
@@ -69,7 +70,7 @@ fn main() {
                 _ => {},
             }
         }
-        sleep(Duration::from_millis(1000));
+        sleep(Duration::from_millis(16));
         cpu.update_graphics(&config, &mut canvas);
     }
 
