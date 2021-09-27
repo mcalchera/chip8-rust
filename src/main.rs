@@ -1,12 +1,12 @@
 mod cpu;
 use crate::cpu::Cpu;
 use std::env;
+use std::thread::sleep;
+use std::time::Duration;
 
 extern crate sdl2;
 use sdl2::event::Event;
 use sdl2::pixels::Color;
-use std::thread::sleep;
-use std::time::Duration;
 
 pub struct Config {
     pub rom: String,
@@ -62,9 +62,7 @@ fn main() {
                 Event::Quit {..} => {
                     break 'gameloop;
                 },
-                Event::KeyDown {..} => {
-                    cpu.process_input(event);
-                }
+                Event::KeyDown {..} |
                 Event::KeyUp {..} => {
                     cpu.process_input(event);
                 },
