@@ -212,7 +212,7 @@ impl Cpu {
         self.current_op = self.get_next_opcode();
         match self.current_op.0 {
             0x0 => match self.current_op.1 {
-                0x0 => match self.current_op.2 {
+                0x0 => match (self.current_op.2 as u16 << 8 | self.current_op.3) {
                     0xE0 => self.clear_screen(), // 0x00E0: clear screen
                     0xEE => self.op_00ee(),  // 0x00EE: return from subroutine
                     _ => self.unimplemented(),
