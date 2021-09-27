@@ -4,6 +4,7 @@ use std::io::prelude::*;
 use rand::thread_rng;
 use rand::Rng;
 use crate::Config;
+
 use sdl2::video::Window;
 use sdl2::render::Canvas;
 use sdl2::rect::Rect;
