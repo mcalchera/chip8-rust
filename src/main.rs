@@ -71,7 +71,7 @@ fn main() {
             }
         }
         sleep(Duration::from_millis(1000));
-        cpu.update_graphics(config, &mut canvas);
+        cpu.update_graphics(&config, &mut canvas);
     }
 
 }
