@@ -67,7 +67,7 @@ fn main() {
                 Event::KeyUp {..} => {
                     cpu.process_input(event);
                 },
-                _ => {},
+                _ => (),
             }
         }
         sleep(Duration::from_millis(16));
