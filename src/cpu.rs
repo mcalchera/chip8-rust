@@ -1,7 +1,15 @@
+extern crate sdl2;
 use std::fs::File;
 use std::io::prelude::*;
 use rand::thread_rng;
 use rand::Rng;
+use crate::Config;
+
+use sdl2::video::Window;
+use sdl2::render::Canvas;
+use sdl2::rect::Rect;
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
 
 #[derive(Debug)]
 pub struct Cpu {
@@ -15,6 +23,7 @@ pub struct Cpu {
     delay_timer: u8,
     current_op: (u8,u8,u8,u8),
     key_pressed: [i32; 16],
+    redraw_gfx: bool,
 }
 // TODO: Remove this directive after writing main fn!
 #[allow(dead_code)]
@@ -41,8 +50,11 @@ impl Cpu {
 
     // Public functions
     pub fn new() -> Cpu {
+        let mut mem = [0u8; 0xFFF];
+        mem[0..80].copy_from_slice(&Cpu::FONT);
+
         Cpu {
-            memory: [0; 0xFFF],
+            memory: mem,
             graphics: [[0;64];32],
             v: [0; 16],
             index: 0,
@@ -52,6 +64,7 @@ impl Cpu {
             delay_timer: 0,
             current_op: (0,0,0,0),
             key_pressed: [0; 16],
+            redraw_gfx: false,
         }
     }
     pub fn reset(&mut self) {
@@ -65,6 +78,7 @@ impl Cpu {
         self.delay_timer = 0;
         self.current_op = (0,0,0,0);
         self.key_pressed = [0; 16];
+        self.redraw_gfx = false;
 
         self.memory[0..80].copy_from_slice(&Cpu::FONT);
     }
@@ -106,6 +120,72 @@ impl Cpu {
         self.execute_next_op();
     }
 
+    /// Updates the SDL canvas with the contents of the processor's graphics memory
+    /// Assumes an initialized Config object and an initialized SDL context with
+    /// a canvas
+    pub fn update_graphics(&mut self, cfg: &Config, canvas: &mut Canvas<Window>) {
+        if self.redraw_gfx {        
+            for x in 0..Cpu::GFX_WIDTH {
+                for y in 0..Cpu::GFX_HEIGHT {
+                    match self.graphics[y][x] {
+                        0 => { canvas.set_draw_color(cfg.white); },
+                        _ => { canvas.set_draw_color(cfg.black); }
+                    }
+                    let x = x as u32 * cfg.scale;
+                    let y = y as u32 * cfg.scale;
+                    match canvas.fill_rect(Rect::new(x as i32, y as i32, cfg.scale, cfg.scale)) {
+                         Ok(()) => {},
+                         Err(err) => { println!("Error drawing rect: {}",err); },
+                    }
+                }
+            }
+            canvas.present();
+            self.redraw_gfx = false;
+        }
+    }
+
+    fn keycode_to_index(keycode: Keycode) -> usize {
+        match keycode {
+            Keycode::X    => { 0 },
+            Keycode::Num1 => { 1 },
+            Keycode::Num2 => { 2 },
+            Keycode::Num3 => { 3 },
+            Keycode::Q    => { 4 },
+            Keycode::W    => { 5 },
+            Keycode::E    => { 6 },
+            Keycode::A    => { 7 },
+            Keycode::S    => { 8 },
+            Keycode::D    => { 9 },
+            Keycode::Z    => { 10 },
+            Keycode::C    => { 11 },
+            Keycode::Num4 => { 12 },
+            Keycode::R    => { 13 },
+            Keycode::F    => { 14 },
+            Keycode::V    => { 15 },
+            _             => { 16 },
+        }
+    }
+
+    pub fn process_input(&mut self, e: Event) {
+        match e {
+            Event::KeyDown {keycode, ..} => {
+                let index = match keycode {
+                    Some(keycode) => Cpu::keycode_to_index(keycode),
+                    None => 16
+                };
+                if index < 16 { self.press_button(index); }
+            }
+            Event::KeyUp {keycode, ..} => {
+                let index = match keycode {
+                    Some(keycode) => Cpu::keycode_to_index(keycode),
+                    None => 16,
+                };
+                if index < 16 { self.release_button(index); }
+            }
+            _ => {}
+        }
+    }
+
     // Private functions
     fn play_sound(&mut self) {
         println!("BEEP!");
@@ -132,13 +212,14 @@ impl Cpu {
     fn clear_screen(&mut self) {
         println!("Clearing screen...");
         self.graphics = [[0;64];32];
+        self.redraw_gfx = true;
     }
 
     fn execute_next_op(&mut self) {
         self.current_op = self.get_next_opcode();
         match self.current_op.0 {
             0x0 => match self.current_op.1 {
-                0x0 => match self.current_op.2 {
+                0x0 => match (self.current_op.2 as u16) << 4 | self.current_op.3 as u16 {
                     0xE0 => self.clear_screen(), // 0x00E0: clear screen
                     0xEE => self.op_00ee(),  // 0x00EE: return from subroutine
                     _ => self.unimplemented(),
@@ -404,6 +485,7 @@ impl Cpu {
                 self.graphics[y][x] ^= set;
             }
         }
+        self.redraw_gfx = true;
     }
 
     fn op_ex9e(&mut self) {
@@ -509,7 +591,7 @@ mod cpu_tests {
     #[test]
     fn test_new_cpu() {
         let cpu = Cpu::new();
-        assert_eq!([0;80], cpu.memory[0..=79]);
+        assert_eq!(Cpu::FONT, cpu.memory[0..=79]);
         assert_eq!([[0;64];32], cpu.graphics);
         assert_eq!([0;16],cpu.v);
         assert_eq!(0x200, cpu.pc);
@@ -1065,5 +1147,14 @@ mod cpu_tests {
         assert_eq!(cpu.v[1], 5);
         assert_eq!(cpu.v[2], 9);
         assert_eq!(cpu.v[3], 17);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_unimplemented() {
+        let mut cpu = Cpu::new();
+        cpu.memory[0x200] = 0x01; // 0x0NNN Jump to SYS memory not supported
+        cpu.memory[0x201] = 0x23;
+        cpu.advance_state();
     }
 }

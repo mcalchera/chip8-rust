@@ -1,4 +1,4 @@
-image: xd009642/tarpaulin:latest
+image: rust-tarpaulin
 
 stages:
   - build
