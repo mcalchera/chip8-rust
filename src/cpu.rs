@@ -23,6 +23,7 @@ pub struct Cpu {
     delay_timer: u8,
     current_op: (u8,u8,u8,u8),
     key_pressed: [i32; 16],
+    redraw_gfx: bool,
 }
 // TODO: Remove this directive after writing main fn!
 #[allow(dead_code)]
@@ -63,6 +64,7 @@ impl Cpu {
             delay_timer: 0,
             current_op: (0,0,0,0),
             key_pressed: [0; 16],
+            redraw_gfx: false,
         }
     }
     pub fn reset(&mut self) {
@@ -76,6 +78,7 @@ impl Cpu {
         self.delay_timer = 0;
         self.current_op = (0,0,0,0);
         self.key_pressed = [0; 16];
+        self.redraw_gfx = false;
 
         self.memory[0..80].copy_from_slice(&Cpu::FONT);
     }
@@ -120,22 +123,25 @@ impl Cpu {
     /// Updates the SDL canvas with the contents of the processor's graphics memory
     /// Assumes an initialized Config object and an initialized SDL context with
     /// a canvas
-    pub fn update_graphics(&self, cfg: &Config, canvas: &mut Canvas<Window>) {
-       for x in 0..Cpu::GFX_WIDTH {
-           for y in 0..Cpu::GFX_HEIGHT {
-               match self.graphics[y][x] {
-                   0 => { canvas.set_draw_color(cfg.white); },
-                   _ => { canvas.set_draw_color(cfg.black); }
-               }
-               let x = x as u32 * cfg.scale;
-               let y = y as u32 * cfg.scale;
-               match canvas.fill_rect(Rect::new(x as i32, y as i32, cfg.scale, cfg.scale)) {
-                    Ok(()) => {},
-                    Err(err) => { println!("Error drawing rect: {}",err); },
-               }
-           }
-       }
-       canvas.present();
+    pub fn update_graphics(&mut self, cfg: &Config, canvas: &mut Canvas<Window>) {
+        if self.redraw_gfx {        
+            for x in 0..Cpu::GFX_WIDTH {
+                for y in 0..Cpu::GFX_HEIGHT {
+                    match self.graphics[y][x] {
+                        0 => { canvas.set_draw_color(cfg.white); },
+                        _ => { canvas.set_draw_color(cfg.black); }
+                    }
+                    let x = x as u32 * cfg.scale;
+                    let y = y as u32 * cfg.scale;
+                    match canvas.fill_rect(Rect::new(x as i32, y as i32, cfg.scale, cfg.scale)) {
+                         Ok(()) => {},
+                         Err(err) => { println!("Error drawing rect: {}",err); },
+                    }
+                }
+            }
+            canvas.present();
+            self.redraw_gfx = false;
+        }
     }
 
     fn keycode_to_index(keycode: Keycode) -> usize {
@@ -206,6 +212,7 @@ impl Cpu {
     fn clear_screen(&mut self) {
         println!("Clearing screen...");
         self.graphics = [[0;64];32];
+        self.redraw_gfx = true;
     }
 
     fn execute_next_op(&mut self) {
@@ -478,6 +485,7 @@ impl Cpu {
                 self.graphics[y][x] ^= set;
             }
         }
+        self.redraw_gfx = true;
     }
 
     fn op_ex9e(&mut self) {

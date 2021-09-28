@@ -70,7 +70,7 @@ fn main() {
                 _ => (),
             }
         }
-        sleep(Duration::from_millis(16));
+        sleep(Duration::from_millis(2));
         cpu.decrement_timers();
         cpu.update_graphics(&config, &mut canvas);
     }
