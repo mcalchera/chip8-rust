@@ -40,7 +40,7 @@ fn main() {
     let window_height = Cpu::GFX_HEIGHT as u32 * config.scale;
     let window_width = Cpu::GFX_WIDTH as u32 * config.scale;
 
-    if !cpu.load_rom(config.rom.as_str()).is_ok() {
+    if cpu.load_rom(config.rom.as_str()).is_err() {
         println!("chip8: error loading ROM file: \"{}\"", config.rom);
         std::process::exit(1);
     }

@@ -201,12 +201,11 @@ impl Cpu {
         let command: u16 = (u16::from(self.memory[pc]) << 8) 
                           | u16::from(self.memory[pc+1]);
         self.pc += 2;
-        let op = (
+        (
             (command >> 12) as u8 & 0xF,
             (command >>  8) as u8 & 0xF,
             (command >>  4) as u8 & 0xF,
-            command         as u8 & 0xF);
-        op
+            command         as u8 & 0xF)
     }
 
     fn clear_screen(&mut self) {
@@ -285,10 +284,9 @@ impl Cpu {
     }
 
     fn construct_address_from_op(&self) -> u16 {
-        let addr = u16::from(self.current_op.1) << 8 |
-                   u16::from(self.current_op.2) << 4 |
-                   u16::from(self.current_op.3);
-        addr
+        u16::from(self.current_op.1) << 8 |
+        u16::from(self.current_op.2) << 4 |
+        u16::from(self.current_op.3)
     }
 
     fn op_00ee(&mut self) { // return from subroutine
@@ -359,21 +357,21 @@ impl Cpu {
         let x = self.current_op.1 as usize;
         let y = self.current_op.2 as usize;
 
-        self.v[x] = self.v[x] | self.v[y];
+        self.v[x] |= self.v[y];
     }
 
     fn op_8xy2(&mut self) {
         let x = self.current_op.1 as usize;
         let y = self.current_op.2 as usize;
         
-        self.v[x] = self.v[x] & self.v[y];
+        self.v[x] &= self.v[y];
     }
 
     fn op_8xy3(&mut self) {
         let x = self.current_op.1 as usize;
         let y = self.current_op.2 as usize;
 
-        self.v[x] = self.v[x] ^ self.v[y];
+        self.v[x] ^= self.v[y];
     }
 
 
@@ -408,7 +406,7 @@ impl Cpu {
     fn op_8xy6(&mut self) {
         let x = self.current_op.1 as usize;
         self.v[0xF] = self.v[x] & 0x01;
-        self.v[x] = self.v[x] >> 1;
+        self.v[x] >>= 1;
     }
 
     fn op_8xy7(&mut self) {
@@ -428,7 +426,7 @@ impl Cpu {
     fn op_8xye(&mut self) {
         let x = self.current_op.1 as usize;
         self.v[0xF] = self.v[x] >> 7;
-        self.v[x] = self.v[x] << 1;
+        self.v[x] <<= 1;
     }
 
     fn op_9xy0(&mut self) {
