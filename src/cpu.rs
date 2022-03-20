@@ -292,7 +292,7 @@ impl Cpu {
     fn op_00ee(&mut self) { // return from subroutine
         match self.stack.pop() {
             Some(return_val) => self.pc = return_val,
-            None => println!("Error executing 0x00ee: nothing on call stack!"),
+            None => println!("Error executing 0x00ee at {:#06x}: nothing on call stack!", self.pc),
         };
     }
 
