@@ -124,7 +124,9 @@ impl Cpu {
     /// Assumes an initialized Config object and an initialized SDL context with
     /// a canvas
     pub fn update_graphics(&mut self, cfg: &Config, canvas: &mut Canvas<Window>) {
-        if self.redraw_gfx {        
+        if self.redraw_gfx {
+            canvas.set_draw_color(cfg.white);
+            canvas.clear();
             for x in 0..Cpu::GFX_WIDTH {
                 for y in 0..Cpu::GFX_HEIGHT {
                     match self.graphics[y][x] {
