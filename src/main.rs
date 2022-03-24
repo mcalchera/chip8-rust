@@ -73,8 +73,7 @@ fn main() {
                 _ => (),
             }
         }
-        // TODO: timing
-        sleep(Duration::from_millis(2));
+        sleep(Duration::from_millis(1));
         let new_time = Instant::now();
 
         if new_time.duration_since(start_time) >= DELTA {
