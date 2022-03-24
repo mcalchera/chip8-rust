@@ -2,7 +2,7 @@ mod cpu;
 use crate::cpu::Cpu;
 use std::env;
 use std::thread::sleep;
-use std::time::Duration;
+use std::time::{Instant, Duration};
 
 extern crate sdl2;
 use sdl2::event::Event;
@@ -56,6 +56,9 @@ fn main() {
 
     let mut canvas = window.into_canvas().build().unwrap();
     // Game loop
+
+    let mut start_time = Instant::now();
+    const DELTA: Duration = Duration::from_millis(16);
     'gameloop: loop {
         cpu.advance_state();
         for event in event_pump.poll_iter() {
@@ -72,7 +75,12 @@ fn main() {
         }
         // TODO: timing
         sleep(Duration::from_millis(2));
-        cpu.decrement_timers();
+        let new_time = Instant::now();
+
+        if new_time.duration_since(start_time) >= DELTA {
+            cpu.decrement_timers();
+            start_time = Instant::now();
+        }
         cpu.update_graphics(&config, &mut canvas);
     }
 
